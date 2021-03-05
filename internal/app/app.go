@@ -26,10 +26,10 @@ func loadFile(inputFile string) ([]byte, error) {
 	return ioutil.ReadAll(inFile)
 }
 
-func loadPolicyYaml(inData []byte) (result *interface{}, err error) {
-	var foo interface{}
+func loadPolicyYaml(inData []byte) (result yaml.Node, err error) {
+	var foo yaml.Node
 	err = yaml.Unmarshal(inData, &IncludeProcessor{&foo})
-	result = &foo
+	result = foo
 	return
 }
 
@@ -41,7 +41,6 @@ func Run(inputPolicyFile string) {
 	}
 
 	result, err := loadPolicyYaml(data)
-	fmt.Printf("Input: %+v\n", *result)
 	out, err := yaml.Marshal(result)
-	fmt.Printf("Ouptut:\n%+v\n", string(out))
+	fmt.Printf("%+v\n", string(out))
 }

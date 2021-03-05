@@ -3,7 +3,7 @@
 
 - !policy
   id: testid
-  owner: !group my-group
+  owner: !group a-group
   body:
     - !include example/sub/example1.yaml
     - !include example/sub/example2.yaml

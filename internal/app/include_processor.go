@@ -25,8 +25,7 @@ func (include *IncludeProcessor) UnmarshalYAML(value *yaml.Node) error {
 	processed, err := processIncludes(value)
 
 	if err != nil {
-		panic(err.Error())
-		// return err
+		return err
 	}
 
 	return processed.Decode(include.target)
@@ -35,14 +34,12 @@ func (include *IncludeProcessor) UnmarshalYAML(value *yaml.Node) error {
 func processIncludes(node *yaml.Node) (*yaml.Node, error) {
 	if node.Tag == "!include" {
 		if node.Kind != yaml.ScalarNode {
-			panic(fmt.Errorf("non-scalar node"))
-			// return nil, fmt.Errorf("!include on a non-scalar node")
+			return nil, fmt.Errorf("!include on a non-scalar node")
 		}
 
 		data, err := loadFile(node.Value)
 		if err != nil {
-			panic(err.Error())
-			// return nil, err
+			return nil, err
 		}
 
 		var fragment Fragment
@@ -55,8 +52,7 @@ func processIncludes(node *yaml.Node) (*yaml.Node, error) {
 		for i := range node.Content {
 			node.Content[i], err = processIncludes(node.Content[i])
 			if err != nil {
-				panic(err.Error())
-				// return nil, err
+				return nil, err
 			}
 		}
 	}
