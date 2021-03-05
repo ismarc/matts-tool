@@ -1,0 +1,6 @@
+- !group
+  id: a-group
+  owner: !group b-group
+- !group
+  id: b-group
+  gidnumber: 1

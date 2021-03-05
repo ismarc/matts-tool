@@ -1,0 +1,22 @@
+- !user
+  id: a-user
+  uidnumber: 1
+  annotations:
+    first_name: a
+    last_name: b
+    email: a@example.com
+- !user
+  id: b-user
+  uidnumber: 2
+  annotations:
+    first_name: b
+    last_name: c
+    email: b@example.com
+- !grant
+  role: !group a-group
+  replace: true
+  member:
+    - !member
+      role: !group b-group
+      admin: true
+    - !user a-user
