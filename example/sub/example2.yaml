@@ -4,12 +4,12 @@
   annotations:
     description: A policy that does stuff
   body:
-    - &secrets-variables
+    - &variables
       - !variable
         id: a-token/pathed/token
     - !group secrets-users
 
     - !permit
       privilege: [ read, update, execute ]
-      resource: *secrets-variables
+      resource: *variables
       role: !group secrets-users

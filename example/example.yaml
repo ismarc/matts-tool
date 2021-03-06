@@ -1,9 +1,9 @@
-- !include example/example1.yaml
-- !include example/example2.yaml
+- !include example1.yaml
+- !include example2.yaml
 
 - !policy
   id: testid
   owner: !group a-group
   body:
-    - !include example/sub/example1.yaml
-    - !include example/sub/example2.yaml
+    - !include sub/example1.yaml
+    - !include sub/example2.yaml
