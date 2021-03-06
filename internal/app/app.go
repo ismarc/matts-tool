@@ -27,9 +27,7 @@ func loadFile(inputFile string) ([]byte, error) {
 }
 
 func loadPolicyYaml(inData []byte) (result yaml.Node, err error) {
-	var foo yaml.Node
-	err = yaml.Unmarshal(inData, &IncludeProcessor{&foo})
-	result = foo
+	err = yaml.Unmarshal(inData, &IncludeProcessor{&result})
 	return
 }
 

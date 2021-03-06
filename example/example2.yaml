@@ -14,6 +14,7 @@
     email: b@example.com
 - !grant
   role: !group a-group
+  replace: true
   member:
     - !member
       role: !group b-group

@@ -32,6 +32,11 @@ func (include *IncludeProcessor) UnmarshalYAML(value *yaml.Node) error {
 }
 
 func processIncludes(node *yaml.Node) (*yaml.Node, error) {
+	// Skip `replace` nodes because they aren't v5 compatible
+	if node.Value == "replace" {
+		node.Value = ""
+		return node, nil
+	}
 	if node.Tag == "!include" {
 		if node.Kind != yaml.ScalarNode {
 			return nil, fmt.Errorf("!include on a non-scalar node")
