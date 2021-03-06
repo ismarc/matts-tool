@@ -34,11 +34,6 @@ func (include *IncludeProcessor) UnmarshalYAML(value *yaml.Node) error {
 }
 
 func processIncludes(node *yaml.Node, loader policyLoader) (*yaml.Node, error) {
-	// Skip `replace` nodes because they aren't v5 compatible
-	if node.Value == "replace" {
-		node.Value = ""
-		return node, nil
-	}
 	if node.Tag == "!include" {
 		if node.Kind != yaml.ScalarNode {
 			return nil, fmt.Errorf("!include on a non-scalar node")
@@ -55,13 +50,18 @@ func processIncludes(node *yaml.Node, loader policyLoader) (*yaml.Node, error) {
 	}
 
 	if node.Kind == yaml.SequenceNode || node.Kind == yaml.MappingNode {
-		var err error
+		var content []*yaml.Node
 		for i := range node.Content {
-			node.Content[i], err = processIncludes(node.Content[i], loader)
-			if err != nil {
-				return nil, err
+			// Remove `replace` entries for v5 compatibility
+			if node.Content[i].Value != "replace" {
+				entry, err := processIncludes(node.Content[i], loader)
+				if err != nil {
+					return nil, err
+				}
+				content = append(content, entry)
 			}
 		}
+		node.Content = content
 	}
 	return node, nil
 }
