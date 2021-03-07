@@ -1,6 +1,6 @@
 ---
 - !policy
-  id: ppp
+  id: ppp/foo/bar
   annotations:
     description: A policy that does stuff
   body:

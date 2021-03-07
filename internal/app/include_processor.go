@@ -1,6 +1,9 @@
 package app
 
 import (
+	"fmt"
+	"regexp"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -17,12 +20,12 @@ type IncludeProcessor struct {
 func (fragment *Fragment) UnmarshalYAML(value *yaml.Node) error {
 	var err error
 
-	fragment.content, err = processIncludes(value, fragment.loader)
+	fragment.content, err = processIncludes(value, fragment.loader, "")
 	return err
 }
 
 func (include *IncludeProcessor) UnmarshalYAML(value *yaml.Node) error {
-	processed, err := processIncludes(value, include.loader)
+	processed, err := processIncludes(value, include.loader, "")
 
 	if err != nil {
 		return err
@@ -31,7 +34,23 @@ func (include *IncludeProcessor) UnmarshalYAML(value *yaml.Node) error {
 	return processed.Decode(include.target)
 }
 
-func processIncludes(node *yaml.Node, loader policyLoader) (*yaml.Node, error) {
+func processIncludes(node *yaml.Node, loader policyLoader, incomingId string) (*yaml.Node, error) {
+	// Get the id for the currently being processed tree
+	if node.Kind == yaml.MappingNode {
+		for i := range node.Content {
+			if node.Content[i].Value == "id" {
+				r1 := regexp.MustCompile(`\W`)
+				fmt.Printf("")
+				incomingId = string(r1.ReplaceAll([]byte(node.Content[i+1].Value), []byte("_")))a
+			}
+		}
+	}
+	if node.Anchor != "" {
+		node.Anchor = fmt.Sprintf("%s_%s", incomingId, node.Anchor)
+	}
+	if node.Kind == yaml.AliasNode {
+		node.Value = fmt.Sprintf("%s_%s", incomingId, node.Value)
+	}
 	if node.Kind == yaml.SequenceNode || node.Kind == yaml.MappingNode {
 		var content []*yaml.Node
 		for i := range node.Content {
@@ -46,7 +65,7 @@ func processIncludes(node *yaml.Node, loader policyLoader) (*yaml.Node, error) {
 					err = yaml.Unmarshal(data, &fragment)
 					content = append(content, fragment.content)
 				} else {
-					entry, err := processIncludes(node.Content[i], loader)
+					entry, err := processIncludes(node.Content[i], loader, incomingId)
 					if err != nil {
 						return nil, err
 					}
