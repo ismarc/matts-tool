@@ -1,8 +1,6 @@
 package app
 
 import (
-	"fmt"
-
 	"gopkg.in/yaml.v3"
 )
 
@@ -34,31 +32,26 @@ func (include *IncludeProcessor) UnmarshalYAML(value *yaml.Node) error {
 }
 
 func processIncludes(node *yaml.Node, loader policyLoader) (*yaml.Node, error) {
-	if node.Tag == "!include" {
-		if node.Kind != yaml.ScalarNode {
-			return nil, fmt.Errorf("!include on a non-scalar node")
-		}
-
-		data, err := loader.loadFile(node.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		fragment := Fragment{loader: loader}
-		err = yaml.Unmarshal(data, &fragment)
-		return fragment.content, err
-	}
-
 	if node.Kind == yaml.SequenceNode || node.Kind == yaml.MappingNode {
 		var content []*yaml.Node
 		for i := range node.Content {
 			// Remove `replace` entries for v5 compatibility
 			if node.Content[i].Value != "replace" {
-				entry, err := processIncludes(node.Content[i], loader)
-				if err != nil {
-					return nil, err
+				if node.Content[i].Tag == "!include" && node.Content[i].Kind == yaml.ScalarNode {
+					data, err := loader.loadFile(node.Content[i].Value)
+					if err != nil {
+						return nil, err
+					}
+					fragment := Fragment{loader: loader}
+					err = yaml.Unmarshal(data, &fragment)
+					content = append(content, fragment.content)
+				} else {
+					entry, err := processIncludes(node.Content[i], loader)
+					if err != nil {
+						return nil, err
+					}
+					content = append(content, entry)
 				}
-				content = append(content, entry)
 			}
 		}
 		node.Content = content
