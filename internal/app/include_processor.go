@@ -41,7 +41,7 @@ func processIncludes(node *yaml.Node, loader policyLoader, incomingId string) (*
 			if node.Content[i].Value == "id" {
 				r1 := regexp.MustCompile(`\W`)
 				fmt.Printf("")
-				incomingId = string(r1.ReplaceAll([]byte(node.Content[i+1].Value), []byte("_")))a
+				incomingId = string(r1.ReplaceAll([]byte(node.Content[i+1].Value), []byte("_")))
 			}
 		}
 	}

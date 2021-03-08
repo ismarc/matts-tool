@@ -11,7 +11,7 @@ import (
 func main() {
 	var inputPolicyFile string
 
-	flags := []cli.Flag{
+	policyFlags := []cli.Flag{
 		&cli.StringFlag{
 			Name:        "input-file",
 			Aliases:     []string{"i"},
@@ -21,14 +21,20 @@ func main() {
 		},
 	}
 
-	cli := &cli.App{
-		Name:  "policy-handler",
-		Usage: "Run policy handler",
-		Flags: flags,
-		Action: func(c *cli.Context) error {
-			app.Run(inputPolicyFile)
-			return nil
+	commands := []*cli.Command{
+		{
+			Name:  "policy",
+			Usage: "Perform policy related operations",
+			Flags: policyFlags,
+			Action: func(c *cli.Context) error {
+				app.Run(inputPolicyFile)
+				return nil
+			},
 		},
+	}
+
+	cli := &cli.App{
+		Commands: commands,
 	}
 
 	err := cli.Run(os.Args)
