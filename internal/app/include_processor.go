@@ -53,24 +53,31 @@ func processIncludes(node *yaml.Node, loader policyLoader, incomingId string) (*
 	}
 	if node.Kind == yaml.SequenceNode || node.Kind == yaml.MappingNode {
 		var content []*yaml.Node
+		inReplace := false
 		for i := range node.Content {
 			// Remove `replace` entries for v5 compatibility
-			if node.Content[i].Value != "replace" {
-				if node.Content[i].Tag == "!include" && node.Content[i].Kind == yaml.ScalarNode {
-					data, err := loader.loadFile(node.Content[i].Value)
-					if err != nil {
-						return nil, err
-					}
-					fragment := Fragment{loader: loader}
-					err = yaml.Unmarshal(data, &fragment)
-					content = append(content, fragment.content)
-				} else {
-					entry, err := processIncludes(node.Content[i], loader, incomingId)
-					if err != nil {
-						return nil, err
-					}
-					content = append(content, entry)
+			if node.Content[i].Value == "replace" {
+				inReplace = true
+				continue
+			}
+			// Remove the content of the replace node as well
+			if inReplace {
+				inReplace = false
+			}
+			if node.Content[i].Tag == "!include" && node.Content[i].Kind == yaml.ScalarNode {
+				data, err := loader.loadFile(node.Content[i].Value)
+				if err != nil {
+					return nil, err
 				}
+				fragment := Fragment{loader: loader}
+				err = yaml.Unmarshal(data, &fragment)
+				content = append(content, fragment.content)
+			} else {
+				entry, err := processIncludes(node.Content[i], loader, incomingId)
+				if err != nil {
+					return nil, err
+				}
+				content = append(content, entry)
 			}
 		}
 		node.Content = content
