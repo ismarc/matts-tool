@@ -81,6 +81,7 @@ func processIncludes(node *yaml.Node, loader policyLoader, incomingId string) (*
 			// Remove the content of the replace node as well
 			if inReplace {
 				inReplace = false
+				continue
 			}
 			if node.Content[i].Tag == "!include" && node.Content[i].Kind == yaml.ScalarNode {
 				data, err := loader.loadFile(node.Content[i].Value)
