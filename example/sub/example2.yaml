@@ -13,3 +13,9 @@
       privilege: [ read, update, execute ]
       resource: *variables
       role: !group secrets-users
+- !policy
+  id: ppp/foo/bar
+  body:
+    - &variables
+      - !variable
+        id: another/ppp/foo/bar/variable

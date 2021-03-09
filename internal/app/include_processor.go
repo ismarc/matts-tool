@@ -34,23 +34,41 @@ func (include *IncludeProcessor) UnmarshalYAML(value *yaml.Node) error {
 	return processed.Decode(include.target)
 }
 
+var seenAnchors = make(map[string]bool)
+
 func processIncludes(node *yaml.Node, loader policyLoader, incomingId string) (*yaml.Node, error) {
 	// Get the id for the currently being processed tree
 	if node.Kind == yaml.MappingNode {
 		for i := range node.Content {
 			if node.Content[i].Value == "id" {
 				r1 := regexp.MustCompile(`\W`)
-				fmt.Printf("")
 				incomingId = string(r1.ReplaceAll([]byte(node.Content[i+1].Value), []byte("_")))
 			}
 		}
 	}
+
 	if node.Anchor != "" {
-		node.Anchor = fmt.Sprintf("%s_%s", incomingId, node.Anchor)
+		// Duplicate ids (because they can be nested) can have duplicate anchors
+		// Work around this by incrementing each time it's seen
+		anchor := node.Anchor
+		for i := 0; seenAnchors[anchor]; i++ {
+			anchor = fmt.Sprintf("%s_%d_%s", incomingId, i, node.Anchor)
+		}
+		node.Anchor = anchor
+		seenAnchors[anchor] = true
 	}
+	// An alias has to follow an anchor, and refers to the most recent.  The related
+	// anchor to the alias will be <id>_<highest counter>_<anchor>
 	if node.Kind == yaml.AliasNode {
-		node.Value = fmt.Sprintf("%s_%s", incomingId, node.Value)
+		anchor := node.Value
+		maxIndex := 0
+		for i := maxIndex; seenAnchors[anchor]; i++ {
+			anchor = fmt.Sprintf("%s_%d_%s", incomingId, i, node.Value)
+			maxIndex = i
+		}
+		node.Value = anchor
 	}
+
 	if node.Kind == yaml.SequenceNode || node.Kind == yaml.MappingNode {
 		var content []*yaml.Node
 		inReplace := false
