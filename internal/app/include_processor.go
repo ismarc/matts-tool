@@ -66,7 +66,9 @@ func processIncludes(node *yaml.Node, loader policyLoader, incomingId string) (*
 			anchor = fmt.Sprintf("%s_%d_%s", incomingId, i, node.Value)
 			maxIndex = i
 		}
-		node.Value = anchor
+		if maxIndex != 0 || seenAnchors[anchor] {
+			node.Value = anchor
+		}
 	}
 
 	if node.Kind == yaml.SequenceNode || node.Kind == yaml.MappingNode {

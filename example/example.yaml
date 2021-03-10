@@ -7,3 +7,10 @@
   body:
     - !include sub/example1.yaml
     - !include sub/example2.yaml
+    - !layer &my-anchor
+      id: foo
+      annotations:
+        description: abracadabra
+    - !host-factory
+      id: another-id
+      layer: [ *my-anchor ]
