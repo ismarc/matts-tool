@@ -36,6 +36,19 @@ func (include *IncludeProcessor) UnmarshalYAML(value *yaml.Node) error {
 
 var seenAnchors = make(map[string]bool)
 
+func excludedTag(value string) bool {
+	switch value {
+	case
+		"replace",
+		"role_name",
+		"record":
+		return true
+	default:
+		return false
+	}
+	return false
+}
+
 func processIncludes(node *yaml.Node, loader policyLoader, incomingId string) (*yaml.Node, error) {
 	// Get the id for the currently being processed tree
 	if node.Kind == yaml.MappingNode {
@@ -64,25 +77,25 @@ func processIncludes(node *yaml.Node, loader policyLoader, incomingId string) (*
 		maxIndex := 0
 		for i := maxIndex; seenAnchors[anchor]; i++ {
 			anchor = fmt.Sprintf("%s_%d_%s", incomingId, i, node.Value)
-			maxIndex = i
+			maxIndex = i - 1
 		}
-		if maxIndex != 0 || seenAnchors[anchor] {
+		if maxIndex > 0 || seenAnchors[anchor] {
 			node.Value = anchor
 		}
 	}
 
 	if node.Kind == yaml.SequenceNode || node.Kind == yaml.MappingNode {
 		var content []*yaml.Node
-		inReplace := false
+		removeNode := false
 		for i := range node.Content {
-			// Remove `replace` entries for v5 compatibility
-			if node.Content[i].Value == "replace" {
-				inReplace = true
+			// Remove excluded tags for v5 compatibility
+			if excludedTag(node.Content[i].Value) {
+				removeNode = true
 				continue
 			}
 			// Remove the content of the replace node as well
-			if inReplace {
-				inReplace = false
+			if removeNode {
+				removeNode = false
 				continue
 			}
 			if node.Content[i].Tag == "!include" && node.Content[i].Kind == yaml.ScalarNode {
@@ -94,11 +107,17 @@ func processIncludes(node *yaml.Node, loader policyLoader, incomingId string) (*
 				err = yaml.Unmarshal(data, &fragment)
 				content = append(content, fragment.content)
 			} else {
-				entry, err := processIncludes(node.Content[i], loader, incomingId)
-				if err != nil {
-					return nil, err
+				if node.Content[i].Tag == "!automatic-role" {
+					if len(content) > 0 {
+						content = content[:len(content)-1]
+					}
+				} else {
+					entry, err := processIncludes(node.Content[i], loader, incomingId)
+					if err != nil {
+						return nil, err
+					}
+					content = append(content, entry)
 				}
-				content = append(content, entry)
 			}
 		}
 		node.Content = content
