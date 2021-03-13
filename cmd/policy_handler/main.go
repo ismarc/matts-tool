@@ -21,13 +21,24 @@ func main() {
 		},
 	}
 
+	dbFlags := []cli.Flag{}
+
 	commands := []*cli.Command{
 		{
 			Name:  "policy",
 			Usage: "Perform policy related operations",
 			Flags: policyFlags,
 			Action: func(c *cli.Context) error {
-				app.Run(inputPolicyFile)
+				app.RunPolicy(inputPolicyFile)
+				return nil
+			},
+		},
+		{
+			Name:  "db",
+			Usage: "Perform db related operations",
+			Flags: dbFlags,
+			Action: func(c *cli.Context) error {
+				app.RunDB()
 				return nil
 			},
 		},

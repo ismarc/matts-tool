@@ -38,8 +38,8 @@ func (p policyLoader) loadPolicyYaml(inData []byte) (result yaml.Node, err error
 	return
 }
 
-// Run is the main entrypoint for the policy-handler
-func Run(inputPolicyFile string) {
+// RunPolicy is the main entrypoint for the policy subcommand
+func RunPolicy(inputPolicyFile string) {
 	loader := policyLoader{filepath.Dir(inputPolicyFile)}
 
 	data, err := loader.loadFile(filepath.Base(inputPolicyFile))
@@ -50,4 +50,10 @@ func Run(inputPolicyFile string) {
 	result, err := loader.loadPolicyYaml(data)
 	out, err := yaml.Marshal(result)
 	fmt.Printf("%+v\n", string(out))
+}
+
+// RunDB is the main entrypoint for the db subcommand
+func RunDB() {
+	fmt.Printf("Coming soon...\n")
+	os.Exit(1)
 }
