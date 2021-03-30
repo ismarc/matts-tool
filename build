@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+set -xeuo pipefail
+
+echo "Building Matts conjur policy v4 --> v5 conversion tool"
+
+# Use cd;pwd to ensure the path is absolute so can be
+# used in a docker mount
+script_dir="$(cd $(dirname ${BASH_SOURCE[0]}); pwd)"
+
+if [[ "${1:-}" == "--docker" ]]; then
+  if ! command -v docker; then
+    echo "Docker not found, if you want to build without docker, install go locally and don't specify --docker"
+  fi
+  docker run\
+    --rm \
+    -v ${script_dir}:/src \
+    -w /src \
+    golang \
+    go build cmd/policy_handler/main.go
+else
+  if ! command -v go; then
+    echo "'go' not found, please install it or use ${0} --docker"
+    exit 1
+  fi
+  pushd ${script_dir}
+    go build cmd/policy_handler/main.go
+  popd
+fi
+
+cp ${script_dir}/main mt
+echo "Written Matts Tool binary written to ${PWD}/mt"
