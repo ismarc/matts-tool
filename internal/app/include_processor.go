@@ -58,13 +58,13 @@ func excludedTag(value string) bool {
 	}
 }
 
-func processIncludes(node *yaml.Node, loader policyLoader, incomingId string) (*yaml.Node, error) {
+func processIncludes(node *yaml.Node, loader policyLoader, incomingID string) (*yaml.Node, error) {
 	// Get the id for the currently being processed tree
 	if node.Kind == yaml.MappingNode {
 		for i := range node.Content {
 			if node.Content[i].Value == "id" {
 				r1 := regexp.MustCompile(`\W`)
-				incomingId = string(r1.ReplaceAll([]byte(node.Content[i+1].Value), []byte("_")))
+				incomingID = string(r1.ReplaceAll([]byte(node.Content[i+1].Value), []byte("_")))
 			}
 		}
 	}
@@ -74,7 +74,7 @@ func processIncludes(node *yaml.Node, loader policyLoader, incomingId string) (*
 		// Work around this by incrementing each time it's seen
 		anchor := node.Anchor
 		for i := 0; seenAnchors[anchor]; i++ {
-			anchor = fmt.Sprintf("%s_%d_%s", incomingId, i, node.Anchor)
+			anchor = fmt.Sprintf("%s_%d_%s", incomingID, i, node.Anchor)
 		}
 		node.Anchor = anchor
 		seenAnchors[anchor] = true
@@ -85,7 +85,7 @@ func processIncludes(node *yaml.Node, loader policyLoader, incomingId string) (*
 		anchor := node.Value
 		maxIndex := 0
 		for i := maxIndex; seenAnchors[anchor]; i++ {
-			anchor = fmt.Sprintf("%s_%d_%s", incomingId, i, node.Value)
+			anchor = fmt.Sprintf("%s_%d_%s", incomingID, i, node.Value)
 			maxIndex = i - 1
 		}
 		if maxIndex > 0 || seenAnchors[anchor] {
@@ -124,7 +124,7 @@ func processIncludes(node *yaml.Node, loader policyLoader, incomingId string) (*
 					}
 				} else {
 					// Process any remaining content nodes
-					entry, err := processIncludes(node.Content[i], loader, incomingId)
+					entry, err := processIncludes(node.Content[i], loader, incomingID)
 					if err != nil {
 						return nil, err
 					}
