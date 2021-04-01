@@ -6,7 +6,7 @@ echo "Building Matts conjur policy v4 --> v5 conversion tool"
 
 # Use cd;pwd to ensure the path is absolute so can be
 # used in a docker mount
-script_dir="$(cd $(dirname ${BASH_SOURCE[0]}); pwd)"
+script_dir="$(cd $(dirname ${BASH_SOURCE[0]}/..); pwd)"
 
 if [[ "${1:-}" == "--docker" ]]; then
   if ! command -v docker; then
@@ -14,19 +14,19 @@ if [[ "${1:-}" == "--docker" ]]; then
   fi
   docker run\
     --rm \
+    -e GOOS \
     -v ${script_dir}:/src \
     -w /src \
     golang \
-    go build cmd/policy_handler/main.go
+    go build -o output/mt cmd/policy_handler/main.go
 else
   if ! command -v go; then
     echo "'go' not found, please install it or use ${0} --docker"
     exit 1
   fi
   pushd ${script_dir}
-    go build cmd/policy_handler/main.go
+    go build -o output/mt cmd/policy_handler/main.go
   popd
 fi
 
-cp ${script_dir}/main mt
-echo "Written Matts Tool binary written to ${PWD}/mt"
+echo "Written Matts Tool binary written to ${PWD}/output/mt"
