@@ -1,0 +1,21 @@
+---
+- !policy
+  id: ppp/foo/bar
+  annotations:
+    description: A policy that does stuff
+  body:
+    - &variables
+      - !variable
+        id: a-token/pathed/token
+    - !group secrets-users
+
+    - !permit
+      privilege: [ read, update, execute ]
+      resource: *variables
+      role: !group secrets-users
+- !policy
+  id: ppp/foo/bar
+  body:
+    - &variables
+      - !variable
+        id: another/ppp/foo/bar/variable

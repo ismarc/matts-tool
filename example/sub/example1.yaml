@@ -1,0 +1,14 @@
+- !policy
+  id: subfoo
+  body:
+    - &variables
+      - !variable path/secret
+      - !variable path/variable
+
+      - !group
+        id: subfoo-users
+      
+    - !permit
+      role: !group subfoo-users
+      privileges: [ read, execute ]
+      resources: *variables
