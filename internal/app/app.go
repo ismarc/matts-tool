@@ -53,7 +53,10 @@ func RunPolicy(inputPolicyFile string) {
 }
 
 // RunDB is the main entrypoint for the db subcommand
-func RunDB() {
-	fmt.Printf("Coming soon...\n")
+func RunDB(sourceDBConnURL string, destinationDBConnURL string) {
+	processor := dbProcessor{}
+	processor.init(sourceDBConnURL, destinationDBConnURL)
+	processor.loadData()
+	fmt.Printf("data: %+v\n", processor.v4Data)
 	os.Exit(1)
 }

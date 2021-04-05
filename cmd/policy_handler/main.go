@@ -10,6 +10,8 @@ import (
 
 func main() {
 	var inputPolicyFile string
+	var sourceDBConnUrl string
+	var destinationDBConnUrl string
 
 	policyFlags := []cli.Flag{
 		&cli.StringFlag{
@@ -21,7 +23,20 @@ func main() {
 		},
 	}
 
-	dbFlags := []cli.Flag{}
+	dbFlags := []cli.Flag{
+		&cli.StringFlag{
+			Name:        "source",
+			Aliases:     []string{"s"},
+			Usage:       "The source database connection url",
+			Destination: &sourceDBConnUrl,
+		},
+		&cli.StringFlag{
+			Name:        "destination",
+			Aliases:     []string{"d"},
+			Usage:       "The destination database connection url",
+			Destination: &destinationDBConnUrl,
+		},
+	}
 
 	commands := []*cli.Command{
 		{
@@ -38,7 +53,7 @@ func main() {
 			Usage: "Perform db related operations",
 			Flags: dbFlags,
 			Action: func(c *cli.Context) error {
-				app.RunDB()
+				app.RunDB(sourceDBConnUrl, destinationDBConnUrl)
 				return nil
 			},
 		},
