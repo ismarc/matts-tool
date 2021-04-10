@@ -52,8 +52,8 @@ func RunPolicy(inputPolicyFile string) {
 	fmt.Printf("%+v\n", string(out))
 }
 
-// RunDB is the main entrypoint for the db subcommand
-func RunDB(sourceConjurRC string, sourceVersion string, destinationConjurRC string, destinationVersion string, noAct bool) {
+// RunApi is the main entrypoint for the db subcommand
+func RunApi(sourceConjurRC string, sourceVersion string, destinationConjurRC string, destinationVersion string, noAct bool) {
 	source, err := loadApi(sourceConjurRC, sourceVersion)
 	if err != nil {
 		panic(err)

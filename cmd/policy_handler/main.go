@@ -26,7 +26,7 @@ func main() {
 		},
 	}
 
-	dbFlags := []cli.Flag{
+	apiFlags := []cli.Flag{
 		&cli.StringFlag{
 			Name:        "source-conjurrc",
 			Aliases:     []string{"s"},
@@ -73,11 +73,11 @@ func main() {
 			},
 		},
 		{
-			Name:  "db",
-			Usage: "Perform db related operations",
-			Flags: dbFlags,
+			Name:  "api",
+			Usage: "Perform api related operations",
+			Flags: apiFlags,
 			Action: func(c *cli.Context) error {
-				app.RunDB(sourceConjurRC, sourceVersion, destinationConjurRC, destinationVersion, noAct)
+				app.RunApi(sourceConjurRC, sourceVersion, destinationConjurRC, destinationVersion, noAct)
 				return nil
 			},
 		},
