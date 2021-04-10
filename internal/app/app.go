@@ -53,7 +53,32 @@ func RunPolicy(inputPolicyFile string) {
 }
 
 // RunDB is the main entrypoint for the db subcommand
-func RunDB() {
-	fmt.Printf("Coming soon...\n")
-	os.Exit(1)
+func RunDB(sourceConjurRC string, sourceVersion string, destinationConjurRC string, destinationVersion string, noAct bool) {
+	source, err := loadApi(sourceConjurRC, sourceVersion)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("source: %s\n", source.GetConfig().ApplianceURL)
+	destination, err := loadApi(destinationConjurRC, destinationVersion)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("destination: %s\n", destination.GetConfig().ApplianceURL)
+
+	resources, err := loadResources(source)
+	if err != nil {
+		panic(err)
+	}
+
+	if !noAct {
+		err = syncResources(resources, source, destination)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		fmt.Printf("Would sync resources:\n")
+		for _, resource := range resources {
+			fmt.Printf("Id: %s\n", resource)
+		}
+	}
 }

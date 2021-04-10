@@ -10,6 +10,11 @@ import (
 
 func main() {
 	var inputPolicyFile string
+	var sourceConjurRC string
+	var sourceVersion string
+	var destinationConjurRC string
+	var destinationVersion string
+	var noAct bool
 
 	policyFlags := []cli.Flag{
 		&cli.StringFlag{
@@ -21,7 +26,41 @@ func main() {
 		},
 	}
 
-	dbFlags := []cli.Flag{}
+	dbFlags := []cli.Flag{
+		&cli.StringFlag{
+			Name:        "source-conjurrc",
+			Aliases:     []string{"s"},
+			Value:       "",
+			Usage:       "The conjurrc file to use as the source for syncing data",
+			Destination: &sourceConjurRC,
+		},
+		&cli.StringFlag{
+			Name:        "source-version",
+			Value:       "4",
+			Usage:       "The major API version of the source for syncing data",
+			Destination: &sourceVersion,
+		},
+		&cli.StringFlag{
+			Name:        "destination-conjurrc",
+			Aliases:     []string{"d"},
+			Value:       "",
+			Usage:       "The conjurrc file to use as the destination for syncing data",
+			Destination: &destinationConjurRC,
+		},
+		&cli.StringFlag{
+			Name:        "destination-version",
+			Value:       "5",
+			Usage:       "The major API version of the destination for syncing data",
+			Destination: &destinationVersion,
+		},
+		&cli.BoolFlag{
+			Name:        "no-act",
+			Aliases:     []string{"n"},
+			Value:       false,
+			Usage:       "Do not read or write variables of data, but fetch the resources that would be synced",
+			Destination: &noAct,
+		},
+	}
 
 	commands := []*cli.Command{
 		{
@@ -38,7 +77,7 @@ func main() {
 			Usage: "Perform db related operations",
 			Flags: dbFlags,
 			Action: func(c *cli.Context) error {
-				app.RunDB()
+				app.RunDB(sourceConjurRC, sourceVersion, destinationConjurRC, destinationVersion, noAct)
 				return nil
 			},
 		},
