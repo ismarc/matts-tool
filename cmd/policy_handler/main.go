@@ -60,6 +60,16 @@ func main() {
 			Usage:       "Do not read or write variables of data, but fetch the resources that would be synced",
 			Destination: &noAct,
 		},
+		&cli.IntFlag{
+			Name:  "resource-batch-size",
+			Value: 25,
+			Usage: "Number of resources to fetch in a single call to conjur",
+		},
+		&cli.IntFlag{
+			Name:  "variable-batch-size",
+			Value: 10,
+			Usage: "Number of variable values to fetch in a single call to conjur",
+		},
 	}
 
 	commands := []*cli.Command{
@@ -77,7 +87,16 @@ func main() {
 			Usage: "Perform api related operations",
 			Flags: apiFlags,
 			Action: func(c *cli.Context) error {
-				app.RunApi(sourceConjurRC, sourceVersion, destinationConjurRC, destinationVersion, noAct)
+				config := app.APIConfig{
+					SourceConjurRC:      sourceConjurRC,
+					SourceVersion:       sourceVersion,
+					DestinationConjurRC: destinationConjurRC,
+					DestinationVersion:  destinationVersion,
+					NoAct:               noAct,
+					ResourceBatchSize:   c.Int("resource-batch-size"),
+					VariableBatchSize:   c.Int("variable-batch-size"),
+				}
+				app.RunAPI(config)
 				return nil
 			},
 		},

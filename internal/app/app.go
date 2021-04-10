@@ -10,6 +10,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// APIConfig provides an interface for API related configuration options
+type APIConfig struct {
+	SourceConjurRC      string
+	SourceVersion       string
+	DestinationConjurRC string
+	DestinationVersion  string
+	NoAct               bool
+	ResourceBatchSize   int
+	VariableBatchSize   int
+}
+
 type policyLoader struct {
 	filePath string
 }
@@ -52,26 +63,26 @@ func RunPolicy(inputPolicyFile string) {
 	fmt.Printf("%+v\n", string(out))
 }
 
-// RunApi is the main entrypoint for the db subcommand
-func RunApi(sourceConjurRC string, sourceVersion string, destinationConjurRC string, destinationVersion string, noAct bool) {
-	source, err := loadApi(sourceConjurRC, sourceVersion)
+// RunAPI is the main entrypoint for the db subcommand
+func RunAPI(config APIConfig) {
+	source, err := loadAPI(config.SourceConjurRC, config.SourceVersion)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("source: %s\n", source.GetConfig().ApplianceURL)
-	destination, err := loadApi(destinationConjurRC, destinationVersion)
+	destination, err := loadAPI(config.DestinationConjurRC, config.DestinationVersion)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("destination: %s\n", destination.GetConfig().ApplianceURL)
 
-	resources, err := loadResources(source)
+	resources, err := loadResources(source, config.ResourceBatchSize)
 	if err != nil {
 		panic(err)
 	}
 
-	if !noAct {
-		err = syncResources(resources, source, destination)
+	if !config.NoAct {
+		err = syncResources(resources, source, destination, config.VariableBatchSize)
 		if err != nil {
 			panic(err)
 		}

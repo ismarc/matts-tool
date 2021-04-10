@@ -8,7 +8,7 @@ import (
 	"github.com/cyberark/conjur-api-go/conjurapi"
 )
 
-func loadApi(conjurrc string, version string) (conjur *conjurapi.Client, err error) {
+func loadAPI(conjurrc string, version string) (conjur *conjurapi.Client, err error) {
 	majorVersion := os.Getenv("CONJUR_MAJOR_VERSION")
 	conjurVersion := os.Getenv("CONJUR_VERSION")
 	os.Setenv("CONJUR_MAJOR_VERSION", version)
@@ -33,8 +33,7 @@ func loadApi(conjurrc string, version string) (conjur *conjurapi.Client, err err
 	return
 }
 
-func loadResources(conjur *conjurapi.Client) (result []string, err error) {
-	batchSize := 25
+func loadResources(conjur *conjurapi.Client, batchSize int) (result []string, err error) {
 	offset := 0
 	resources, err := conjur.Resources(&conjurapi.ResourceFilter{Kind: "variable", Limit: batchSize, Offset: offset})
 
@@ -54,8 +53,7 @@ func loadResources(conjur *conjurapi.Client) (result []string, err error) {
 	return
 }
 
-func syncResources(resources []string, source *conjurapi.Client, destination *conjurapi.Client) (err error) {
-	batchSize := 10
+func syncResources(resources []string, source *conjurapi.Client, destination *conjurapi.Client, batchSize int) (err error) {
 	account := source.GetConfig().Account
 	variablePrefix := fmt.Sprintf("%s:variable:", account)
 	resources = resources[len(resources)-10:]
@@ -66,7 +64,8 @@ func syncResources(resources []string, source *conjurapi.Client, destination *co
 		}
 	}
 
-	// Uncomment the following to only operate on the last 10 variables instead of all 600+
+	// Uncomment the following to only operate on the last 10 variables instead of all
+	// Useful for testing variable operations when the number of resources is large
 	// variables = variables[len(variables)-10:]
 
 	for index := 0; index < len(variables); index += batchSize {
