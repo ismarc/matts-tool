@@ -40,8 +40,16 @@ func loadAPI(conjurrc string, version string, netrc string) (conjur *conjurapi.C
 func loadResources(conjur *conjurapi.Client, batchSize int) (result []string, err error) {
 	offset := 0
 	resources, err := conjur.Resources(&conjurapi.ResourceFilter{Kind: "variable", Limit: batchSize, Offset: offset})
+	if err != nil {
+		return
+	}
+
+	for _, resource := range resources {
+		result = append(result, resource["id"].(string))
+	}
 
 	for len(resources) == batchSize {
+		resources, err = conjur.Resources(&conjurapi.ResourceFilter{Kind: "variable", Limit: batchSize, Offset: offset})
 		if err != nil {
 			return
 		}
@@ -51,7 +59,6 @@ func loadResources(conjur *conjurapi.Client, batchSize int) (result []string, er
 		}
 
 		offset += 25
-		resources, err = conjur.Resources(&conjurapi.ResourceFilter{Kind: "variable", Limit: batchSize, Offset: offset})
 	}
 
 	return
