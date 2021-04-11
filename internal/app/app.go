@@ -13,8 +13,10 @@ import (
 // APIConfig provides an interface for API related configuration options
 type APIConfig struct {
 	SourceConjurRC      string
+	SourceNetRC         string
 	SourceVersion       string
 	DestinationConjurRC string
+	DestinationNetRC    string
 	DestinationVersion  string
 	NoAct               bool
 	ResourceBatchSize   int
@@ -65,12 +67,12 @@ func RunPolicy(inputPolicyFile string) {
 
 // RunAPI is the main entrypoint for the db subcommand
 func RunAPI(config APIConfig) {
-	source, err := loadAPI(config.SourceConjurRC, config.SourceVersion)
+	source, err := loadAPI(config.SourceConjurRC, config.SourceVersion, config.SourceNetRC)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("source: %s\n", source.GetConfig().ApplianceURL)
-	destination, err := loadAPI(config.DestinationConjurRC, config.DestinationVersion)
+	destination, err := loadAPI(config.DestinationConjurRC, config.DestinationVersion, config.DestinationNetRC)
 	if err != nil {
 		panic(err)
 	}

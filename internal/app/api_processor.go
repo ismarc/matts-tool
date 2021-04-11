@@ -8,7 +8,7 @@ import (
 	"github.com/cyberark/conjur-api-go/conjurapi"
 )
 
-func loadAPI(conjurrc string, version string) (conjur *conjurapi.Client, err error) {
+func loadAPI(conjurrc string, version string, netrc string) (conjur *conjurapi.Client, err error) {
 	majorVersion := os.Getenv("CONJUR_MAJOR_VERSION")
 	conjurVersion := os.Getenv("CONJUR_VERSION")
 	os.Setenv("CONJUR_MAJOR_VERSION", version)
@@ -19,6 +19,10 @@ func loadAPI(conjurrc string, version string) (conjur *conjurapi.Client, err err
 	originalConjurRC := os.Getenv("CONJURRC")
 	os.Setenv("CONJURRC", conjurrc)
 	defer os.Setenv("CONJURRC", originalConjurRC)
+
+	originalNetrc := os.Getenv("CONJUR_NETRC_PATH")
+	os.Setenv("CONJUR_NETRC_PATH", netrc)
+	defer os.Setenv("CONJUR_NETRC_PATH", originalNetrc)
 
 	config, err := conjurapi.LoadConfig()
 	if err != nil {
@@ -56,7 +60,7 @@ func loadResources(conjur *conjurapi.Client, batchSize int) (result []string, er
 func syncResources(resources []string, source *conjurapi.Client, destination *conjurapi.Client, batchSize int) (err error) {
 	account := source.GetConfig().Account
 	variablePrefix := fmt.Sprintf("%s:variable:", account)
-	resources = resources[len(resources)-10:]
+
 	var variables []string
 	for _, resource := range resources {
 		if strings.HasPrefix(resource, variablePrefix) {
@@ -70,6 +74,9 @@ func syncResources(resources []string, source *conjurapi.Client, destination *co
 
 	for index := 0; index < len(variables); index += batchSize {
 		end := index + batchSize
+		if end > len(variables) {
+			end = len(variables)
+		}
 		batch := variables[index:end]
 		data, err := source.RetrieveBatchSecrets(batch)
 		if err != nil {
@@ -85,7 +92,6 @@ func syncResources(resources []string, source *conjurapi.Client, destination *co
 }
 
 func addSecret(destination *conjurapi.Client, variable string, value string) {
-	fmt.Printf("Would write secret: %s\n", variable)
-	// Uncomment the following to write the secret to the destination.  Should theoretically work, has not been run
-	// destination.AddSecret(variable, value)
+	fmt.Printf("Writing variable: %s\n", variable)
+	destination.AddSecret(variable, value)
 }

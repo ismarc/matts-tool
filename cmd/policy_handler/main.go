@@ -35,6 +35,11 @@ func main() {
 			Destination: &sourceConjurRC,
 		},
 		&cli.StringFlag{
+			Name:  "source-netrc",
+			Value: "~/.netrc",
+			Usage: "The netrc file to use for credentials for the source instance",
+		},
+		&cli.StringFlag{
 			Name:        "source-version",
 			Value:       "4",
 			Usage:       "The major API version of the source for syncing data",
@@ -46,6 +51,11 @@ func main() {
 			Value:       "",
 			Usage:       "The conjurrc file to use as the destination for syncing data",
 			Destination: &destinationConjurRC,
+		},
+		&cli.StringFlag{
+			Name:  "destination-netrc",
+			Value: "~/.netrc",
+			Usage: "The netrc file to use for credentials for the destination instance",
 		},
 		&cli.StringFlag{
 			Name:        "destination-version",
@@ -89,8 +99,10 @@ func main() {
 			Action: func(c *cli.Context) error {
 				config := app.APIConfig{
 					SourceConjurRC:      sourceConjurRC,
+					SourceNetRC:         c.String("source-netrc"),
 					SourceVersion:       sourceVersion,
 					DestinationConjurRC: destinationConjurRC,
+					DestinationNetRC:    c.String("destination-netrc"),
 					DestinationVersion:  destinationVersion,
 					NoAct:               noAct,
 					ResourceBatchSize:   c.Int("resource-batch-size"),
