@@ -15,6 +15,7 @@ func main() {
 	var destinationConjurRC string
 	var destinationVersion string
 	var noAct bool
+	var continueOnError bool
 
 	policyFlags := []cli.Flag{
 		&cli.StringFlag{
@@ -70,6 +71,13 @@ func main() {
 			Usage:       "Do not read or write variables of data, but fetch the resources that would be synced",
 			Destination: &noAct,
 		},
+		&cli.BoolFlag{
+			Name:        "continue-on-error",
+			Aliases:     []string{"c"},
+			Value:       true,
+			Usage:       "Continue processing when receiving an error reading or writing a variable",
+			Destination: &continueOnError,
+		},
 		&cli.IntFlag{
 			Name:  "resource-batch-size",
 			Value: 25,
@@ -105,6 +113,7 @@ func main() {
 					DestinationNetRC:    c.String("destination-netrc"),
 					DestinationVersion:  destinationVersion,
 					NoAct:               noAct,
+					ContinueOnError:     continueOnError,
 					ResourceBatchSize:   c.Int("resource-batch-size"),
 					VariableBatchSize:   c.Int("variable-batch-size"),
 				}

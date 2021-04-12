@@ -19,6 +19,7 @@ type APIConfig struct {
 	DestinationNetRC    string
 	DestinationVersion  string
 	NoAct               bool
+	ContinueOnError     bool
 	ResourceBatchSize   int
 	VariableBatchSize   int
 }
@@ -84,9 +85,16 @@ func RunAPI(config APIConfig) {
 	}
 
 	if !config.NoAct {
-		err = syncResources(resources, source, destination, config.VariableBatchSize)
-		if err != nil {
-			panic(err)
+		errors := syncResources(resources, source, destination, config.VariableBatchSize, config.ContinueOnError)
+		if len(errors) != 0 {
+			fmt.Printf("Errors received:\n")
+			for k, v := range errors {
+				fmt.Printf("Error: %s\n", k)
+				fmt.Printf("  Associated entries in the call:\n")
+				for _, value := range v {
+					fmt.Printf("  Id: %s\n", value)
+				}
+			}
 		}
 	} else {
 		fmt.Printf("Would sync resources:\n")

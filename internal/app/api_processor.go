@@ -64,7 +64,8 @@ func loadResources(conjur *conjurapi.Client, batchSize int) (result []string, er
 	return
 }
 
-func syncResources(resources []string, source *conjurapi.Client, destination *conjurapi.Client, batchSize int) (err error) {
+func syncResources(resources []string, source *conjurapi.Client, destination *conjurapi.Client, batchSize int, continueOnError bool) (errors map[error][]string) {
+	errors = make(map[error][]string)
 	account := source.GetConfig().Account
 	variablePrefix := fmt.Sprintf("%s:variable:", account)
 
@@ -75,10 +76,6 @@ func syncResources(resources []string, source *conjurapi.Client, destination *co
 		}
 	}
 
-	// Uncomment the following to only operate on the last 10 variables instead of all
-	// Useful for testing variable operations when the number of resources is large
-	// variables = variables[len(variables)-10:]
-
 	for index := 0; index < len(variables); index += batchSize {
 		end := index + batchSize
 		if end > len(variables) {
@@ -87,18 +84,27 @@ func syncResources(resources []string, source *conjurapi.Client, destination *co
 		batch := variables[index:end]
 		data, err := source.RetrieveBatchSecrets(batch)
 		if err != nil {
-			return err
+			errors[err] = batch
+			if !continueOnError {
+				return
+			}
 		}
 
 		for variable, value := range data {
-			addSecret(destination, variable, string(value))
+			err := addSecret(destination, variable, string(value))
+			if err != nil {
+				errors[err] = []string{variable}
+				if !continueOnError {
+					return
+				}
+			}
 		}
 	}
 
 	return
 }
 
-func addSecret(destination *conjurapi.Client, variable string, value string) {
+func addSecret(destination *conjurapi.Client, variable string, value string) error {
 	fmt.Printf("Writing variable: %s\n", variable)
-	destination.AddSecret(variable, value)
+	return destination.AddSecret(variable, value)
 }
