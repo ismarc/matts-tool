@@ -64,8 +64,8 @@ func loadResources(conjur *conjurapi.Client, batchSize int) (result []string, er
 	return
 }
 
-func syncResources(resources []string, source *conjurapi.Client, destination *conjurapi.Client, batchSize int, continueOnError bool) (errors map[error][]string) {
-	errors = make(map[error][]string)
+func syncResources(resources []string, source *conjurapi.Client, destination *conjurapi.Client, batchSize int, continueOnError bool) (errors map[string][]string) {
+	errors = make(map[string][]string)
 	account := source.GetConfig().Account
 	variablePrefix := fmt.Sprintf("%s:variable:", account)
 
@@ -84,16 +84,34 @@ func syncResources(resources []string, source *conjurapi.Client, destination *co
 		batch := variables[index:end]
 		data, err := source.RetrieveBatchSecrets(batch)
 		if err != nil {
-			errors[err] = batch
-			if !continueOnError {
-				return
+			// An error in the batch means that at least one had an error response, not that they all had an error
+			// Attempt each item in turn so variables aren't missed
+			data = make(map[string][]byte)
+			for _, entry := range batch {
+				value, err := source.RetrieveSecret(entry)
+				if err != nil {
+					if errors[err.Error()] != nil {
+						errors[err.Error()] = append(errors[err.Error()], entry)
+					} else {
+						errors[err.Error()] = []string{entry}
+					}
+					if !continueOnError {
+						return
+					}
+				} else {
+					data[entry] = value
+				}
 			}
 		}
 
 		for variable, value := range data {
 			err := addSecret(destination, variable, string(value))
 			if err != nil {
-				errors[err] = []string{variable}
+				if errors[err.Error()] != nil {
+					errors[err.Error()] = append(errors[err.Error()], variable)
+				} else {
+					errors[err.Error()] = []string{variable}
+				}
 				if !continueOnError {
 					return
 				}

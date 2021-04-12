@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -90,9 +91,10 @@ func RunAPI(config APIConfig) {
 			fmt.Printf("Errors received:\n")
 			for k, v := range errors {
 				fmt.Printf("Error: %s\n", k)
-				fmt.Printf("  Associated entries in the call:\n")
 				for _, value := range v {
-					fmt.Printf("  Id: %s\n", value)
+					if !strings.Contains(k, value) {
+						fmt.Printf("  %s\n", value)
+					}
 				}
 			}
 		}
