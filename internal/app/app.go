@@ -46,15 +46,14 @@ func (p policyLoader) loadFile(inputFile string) ([]byte, error) {
 	return ioutil.ReadAll(inFile)
 }
 
-func (p policyLoader) loadPolicyYaml(inData []byte) (result yaml.Node, err error) {
-	processor := IncludeProcessor{&result, p}
-	// err = yaml.Unmarshal(inData, &IncludeProcessor{&result, "foo"})
+func (p policyLoader) loadPolicyYaml(inData []byte, stripAnnotations bool) (result yaml.Node, err error) {
+	processor := IncludeProcessor{&result, p, stripAnnotations}
 	err = yaml.Unmarshal(inData, &processor)
 	return
 }
 
 // RunPolicy is the main entrypoint for the policy subcommand
-func RunPolicy(inputPolicyFile string) {
+func RunPolicy(inputPolicyFile string, stripAnnotations bool) {
 	loader := policyLoader{filepath.Dir(inputPolicyFile)}
 
 	data, err := loader.loadFile(filepath.Base(inputPolicyFile))
@@ -62,7 +61,7 @@ func RunPolicy(inputPolicyFile string) {
 		panic(err.Error())
 	}
 
-	result, err := loader.loadPolicyYaml(data)
+	result, err := loader.loadPolicyYaml(data, stripAnnotations)
 	out, err := yaml.Marshal(result)
 	fmt.Printf("%+v\n", string(out))
 }

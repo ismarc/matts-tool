@@ -10,15 +10,17 @@ import (
 // Fragment is a yaml fragment intermediary stage in
 // proccessing yaml, primarily to provide include functionality
 type Fragment struct {
-	content *yaml.Node
-	loader  policyLoader
+	content          *yaml.Node
+	loader           policyLoader
+	stripAnnotations bool
 }
 
 // IncludeProcessor is an interface as an intermediary stage in
 // processing yaml documents, primarily to provide include functionality
 type IncludeProcessor struct {
-	target interface{}
-	loader policyLoader
+	target           interface{}
+	loader           policyLoader
+	stripAnnotations bool
 }
 
 // UnmarshalYAML processes includes and other filtering for the given
@@ -26,14 +28,14 @@ type IncludeProcessor struct {
 func (fragment *Fragment) UnmarshalYAML(value *yaml.Node) error {
 	var err error
 
-	fragment.content, err = processIncludes(value, fragment.loader, "")
+	fragment.content, err = processIncludes(value, fragment.loader, fragment.stripAnnotations, "")
 	return err
 }
 
 // UnmarshalYAML processes includes and other filtering for the given
 // node tree.
 func (include *IncludeProcessor) UnmarshalYAML(value *yaml.Node) error {
-	processed, err := processIncludes(value, include.loader, "")
+	processed, err := processIncludes(value, include.loader, include.stripAnnotations, "")
 
 	if err != nil {
 		return err
@@ -46,19 +48,21 @@ var seenAnchors = make(map[string]bool)
 
 // excludedTag determines if the supplied values matches on that
 // should be removed
-func excludedTag(value string) bool {
+func excludedTag(value string, stripAnnotations bool) bool {
 	switch value {
 	case
 		"replace",
 		"role_name",
 		"record":
 		return true
+	case "annotations":
+		return stripAnnotations
 	default:
 		return false
 	}
 }
 
-func processIncludes(node *yaml.Node, loader policyLoader, incomingID string) (*yaml.Node, error) {
+func processIncludes(node *yaml.Node, loader policyLoader, stripAnnotations bool, incomingID string) (*yaml.Node, error) {
 	// Get the id for the currently being processed tree
 	if node.Kind == yaml.MappingNode {
 		for i := range node.Content {
@@ -98,7 +102,7 @@ func processIncludes(node *yaml.Node, loader policyLoader, incomingID string) (*
 		removeNode := false
 		for i := range node.Content {
 			// Remove excluded tags for v5 compatibility
-			if excludedTag(node.Content[i].Value) {
+			if excludedTag(node.Content[i].Value, stripAnnotations) {
 				removeNode = true
 				continue
 			}
@@ -113,7 +117,7 @@ func processIncludes(node *yaml.Node, loader policyLoader, incomingID string) (*
 				if err != nil {
 					return nil, err
 				}
-				fragment := Fragment{loader: loader}
+				fragment := Fragment{loader: loader, stripAnnotations: stripAnnotations}
 				err = yaml.Unmarshal(data, &fragment)
 				content = append(content, fragment.content)
 			} else {
@@ -124,7 +128,7 @@ func processIncludes(node *yaml.Node, loader policyLoader, incomingID string) (*
 					}
 				} else {
 					// Process any remaining content nodes
-					entry, err := processIncludes(node.Content[i], loader, incomingID)
+					entry, err := processIncludes(node.Content[i], loader, stripAnnotations, incomingID)
 					if err != nil {
 						return nil, err
 					}

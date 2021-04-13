@@ -25,6 +25,11 @@ func main() {
 			Usage:       "The base policy file to load",
 			Destination: &inputPolicyFile,
 		},
+		&cli.BoolFlag{
+			Name:  "strip-annotations",
+			Value: false,
+			Usage: "Whether to strip any annotations from the resulting policy",
+		},
 	}
 
 	apiFlags := []cli.Flag{
@@ -96,7 +101,7 @@ func main() {
 			Usage: "Perform policy related operations",
 			Flags: policyFlags,
 			Action: func(c *cli.Context) error {
-				app.RunPolicy(inputPolicyFile)
+				app.RunPolicy(inputPolicyFile, c.Bool("strip-annotations"))
 				return nil
 			},
 		},
