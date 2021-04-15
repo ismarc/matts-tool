@@ -11,6 +11,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// DBConfig provides an interface for DB related configuration options
+type DBConfig struct {
+	SourceConnectionString string
+	SourceVersion          string
+}
+
 // APIConfig provides an interface for API related configuration options
 type APIConfig struct {
 	SourceConjurRC      string
@@ -64,6 +70,18 @@ func RunPolicy(inputPolicyFile string, stripAnnotations bool) {
 	result, err := loader.loadPolicyYaml(data, stripAnnotations)
 	out, err := yaml.Marshal(result)
 	fmt.Printf("%+v\n", string(out))
+}
+
+func RunDB(config DBConfig) {
+	processor := dbProcessor{}
+	processor.init(config)
+	// config.SourceConnectionString, "")
+	// processor.loadData()
+	data, err := processor.fetchData()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("data: %+v\n", data)
 }
 
 // RunAPI is the main entrypoint for the db subcommand

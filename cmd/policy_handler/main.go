@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/ismarc/policy-handler/internal/app"
+	"github.com/ismarc/matts-tool/internal/app"
 	"github.com/urfave/cli/v2"
 )
 
@@ -29,6 +29,20 @@ func main() {
 			Name:  "strip-annotations",
 			Value: false,
 			Usage: "Whether to strip any annotations from the resulting policy",
+		},
+	}
+
+	dbFlags := []cli.Flag{
+		&cli.StringFlag{
+			Name:    "source",
+			Aliases: []string{"s"},
+			Value:   "",
+			Usage:   "Source database URL connection string",
+		},
+		&cli.StringFlag{
+			Name:  "source-version",
+			Value: "4",
+			Usage: "The major API version conjur of the source database",
 		},
 	}
 
@@ -102,6 +116,19 @@ func main() {
 			Flags: policyFlags,
 			Action: func(c *cli.Context) error {
 				app.RunPolicy(inputPolicyFile, c.Bool("strip-annotations"))
+				return nil
+			},
+		},
+		{
+			Name:  "db",
+			Usage: "Perform db related operations",
+			Flags: dbFlags,
+			Action: func(c *cli.Context) error {
+				config := app.DBConfig{
+					SourceConnectionString: c.String("source"),
+					SourceVersion:          c.String("source-version"),
+				}
+				app.RunDB(config)
 				return nil
 			},
 		},

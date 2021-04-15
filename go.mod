@@ -1,10 +1,15 @@
-module github.com/ismarc/policy-handler
+module github.com/ismarc/matts-tool
 
 go 1.15
 
 require (
 	github.com/cyberark/conjur-api-go v0.7.2-0.20210409213735-a7f389eb1900
+	github.com/jackc/pgtype v1.6.2 // indirect
+	github.com/lib/pq v1.6.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli/v2 v2.3.0
+	github.com/xo/dburl v0.6.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gorm.io/driver/postgres v1.0.8 // indirect
+	gorm.io/gorm v1.21.7 // indirect
 )
