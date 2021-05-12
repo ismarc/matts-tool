@@ -19,7 +19,7 @@ func (User) TableName() string {
 
 // SlosiloKeystore v4 slosilo_keystore type
 type SlosiloKeystore struct {
-	ID          string `gorm:"not null"`
+	Id          string `gorm:"not null"`
 	Key         []byte `gorm:"not null;type:bytea"`
 	Fingerprint string `gorm:"not null"`
 }
@@ -27,10 +27,4 @@ type SlosiloKeystore struct {
 // TableName v4 slosilo_keystore table name
 func (SlosiloKeystore) TableName() string {
 	return "authn.slosilo_keystore"
-}
-
-// Data a full database of data
-type Data struct {
-	Users           []User
-	SlosiloKeystore []SlosiloKeystore
 }

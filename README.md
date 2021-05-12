@@ -17,3 +17,6 @@ v4 policy represented.
 
 `matts-tool policy -i <filename>` will also work for v5 policy that includes `!include` tags as well,
 making organization and management of large policies reasonable.
+
+# DB movement stuff
+`pg_dump --data-only --schema="authn" --table="authn.users" > ~/data.sql`

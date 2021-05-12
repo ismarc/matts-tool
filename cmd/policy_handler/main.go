@@ -37,12 +37,7 @@ func main() {
 			Name:    "source",
 			Aliases: []string{"s"},
 			Value:   "",
-			Usage:   "Source database URL connection string",
-		},
-		&cli.StringFlag{
-			Name:  "source-version",
-			Value: "4",
-			Usage: "The major API version conjur of the source database",
+			Usage:   "Source filename containing appropriate pg_dump data to load",
 		},
 	}
 
@@ -124,9 +119,10 @@ func main() {
 			Usage: "Perform db related operations",
 			Flags: dbFlags,
 			Action: func(c *cli.Context) error {
+				sourceDataKey := os.Getenv("IN_CONJUR_DATA_KEY")
 				config := app.DBConfig{
-					SourceConnectionString: c.String("source"),
-					SourceVersion:          c.String("source-version"),
+					SourceFilename: c.String("source"),
+					SourceDataKey:  sourceDataKey,
 				}
 				app.RunDB(config)
 				return nil

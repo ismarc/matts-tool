@@ -13,8 +13,8 @@ import (
 
 // DBConfig provides an interface for DB related configuration options
 type DBConfig struct {
-	SourceConnectionString string
-	SourceVersion          string
+	SourceFilename string
+	SourceDataKey  string
 }
 
 // APIConfig provides an interface for API related configuration options
@@ -75,9 +75,7 @@ func RunPolicy(inputPolicyFile string, stripAnnotations bool) {
 func RunDB(config DBConfig) {
 	processor := dbProcessor{}
 	processor.init(config)
-	// config.SourceConnectionString, "")
-	// processor.loadData()
-	data, err := processor.fetchData()
+	data, err := processor.readData()
 	if err != nil {
 		panic(err)
 	}
