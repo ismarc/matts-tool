@@ -132,7 +132,7 @@ func AES256GCMEncrypt(stringKey string, rawPlaintext string, additionalData stri
 	plaintext := []byte(rawPlaintext)
 
 	rawCiphertext := gcm.Seal(nonce, nonce, plaintext, []byte(additionalData))
-	packed := pack(rawCiphertext)
+	packed := packG(rawCiphertext)
 	ciphertext = hex.EncodeToString(packed)
 
 	return

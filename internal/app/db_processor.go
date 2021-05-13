@@ -2,11 +2,14 @@ package app
 
 import (
 	"bufio"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 
+	v5 "github.com/ismarc/matts-tool/internal/app/model/v5"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -14,7 +17,9 @@ type dbProcessor struct {
 	sourceFilename     string
 	sourceDataKey      string
 	destination        *gorm.DB
-	destinationVersion string
+	destinationDataKey string
+	destinationAccount string
+	noAct              bool
 }
 
 func check(e error) {
@@ -26,15 +31,17 @@ func check(e error) {
 func (db *dbProcessor) init(config DBConfig) {
 	db.sourceFilename = config.SourceFilename
 	db.sourceDataKey = config.SourceDataKey
-	// destinationDSN, err := dburl.Parse(config.DestinationConnectionString)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	db.destinationDataKey = config.DestinationDataKey
+	db.destinationAccount = config.DestinationAccount
+	db.noAct = config.NoAct
 
-	// db.destination, err = gorm.Open(postgres.Open(destinationDSN.DSN), &gorm.Config{})
-	// if err != nil {
-	// 	panic(err)
-	// }
+	if !db.noAct {
+		dbConnection, err := gorm.Open(postgres.Open(config.DestinationDSN), &gorm.Config{})
+		if err != nil {
+			panic(err)
+		}
+		db.destination = dbConnection
+	}
 }
 
 type V4User struct {
@@ -43,7 +50,41 @@ type V4User struct {
 	encrypted_hash string
 }
 
-func (db *dbProcessor) readData() (result []V4User, err error) {
+func (user *V4User) toV5(dataKey string, account string) (result v5.Credential) {
+	if strings.HasPrefix(user.login, "host/") {
+		base := strings.TrimPrefix(user.login, "host/")
+		result.RoleId = fmt.Sprintf("%s:host:%s", account, base)
+	} else {
+		result.RoleId = fmt.Sprintf("%s:user:%s", account, user.login)
+	}
+
+	if len(user.encrypted_hash) > 0 {
+		hash, err := AES256GCMEncrypt(dataKey, user.encrypted_hash, result.RoleId)
+		if err != nil {
+			panic(err)
+		}
+		raw, err := hex.DecodeString(hash)
+		if err != nil {
+			panic(err)
+		}
+		result.EncryptedHash = raw
+	}
+
+	if len(user.api_key) > 0 {
+		apiKey, err := AES256GCMEncrypt(dataKey, user.api_key, result.RoleId)
+		if err != nil {
+			panic(err)
+		}
+		raw, err := hex.DecodeString(apiKey)
+		if err != nil {
+			panic(err)
+		}
+		result.ApiKey = raw
+	}
+	return
+}
+
+func (db *dbProcessor) readData() (result []v5.Credential, err error) {
 	inFile, err := os.Open(db.sourceFilename)
 	if err != nil {
 		log.Fatal(err)
@@ -77,14 +118,20 @@ func (db *dbProcessor) readData() (result []V4User, err error) {
 			}
 
 			if !strings.HasPrefix(user.login, "host/i-") && !strings.HasPrefix(user.login, "host/azure-linux-agent-v2") {
-				result = append(result, user)
+				decrypted_api_key, err := AES256GCMDecrypt(db.sourceDataKey, user.api_key[3:], user.login)
+				if err != nil {
+					panic(err)
+				}
+				user.api_key = string(decrypted_api_key)
+				if len(user.encrypted_hash) > 3 {
+					decrypted_hash, err := AES256GCMDecrypt(db.sourceDataKey, user.encrypted_hash[3:], user.login)
+					if err != nil {
+						panic(err)
+					}
+					user.encrypted_hash = string(decrypted_hash)
+				}
+				result = append(result, user.toV5(db.destinationDataKey, db.destinationAccount))
 			}
-
-			decrypted, err := AES256GCMDecrypt(db.sourceDataKey, user.api_key[3:], "conjur:user:"+user.login)
-			if err != nil {
-				panic(err)
-			}
-			fmt.Printf("Decrypted: %+v\n", decrypted)
 		}
 	}
 
@@ -94,4 +141,13 @@ func (db *dbProcessor) readData() (result []V4User, err error) {
 	}
 
 	return
+}
+
+func (db *dbProcessor) updateData(data []v5.Credential) {
+	for _, credential := range data {
+		result := db.destination.Save(credential)
+		if result.Error != nil {
+			panic(result.Error)
+		}
+	}
 }

@@ -13,8 +13,12 @@ import (
 
 // DBConfig provides an interface for DB related configuration options
 type DBConfig struct {
-	SourceFilename string
-	SourceDataKey  string
+	SourceFilename     string
+	SourceDataKey      string
+	DestinationDSN     string
+	DestinationDataKey string
+	DestinationAccount string
+	NoAct              bool
 }
 
 // APIConfig provides an interface for API related configuration options
@@ -79,7 +83,12 @@ func RunDB(config DBConfig) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("data: %+v\n", data)
+
+	processor.updateData(data)
+	fmt.Printf("Set credentials for:\n")
+	for _, v := range data {
+		fmt.Printf("%s\n", v.RoleId)
+	}
 }
 
 // RunAPI is the main entrypoint for the db subcommand
