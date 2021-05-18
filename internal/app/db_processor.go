@@ -144,10 +144,17 @@ func (db *dbProcessor) readData() (result []v5.Credential, err error) {
 }
 
 func (db *dbProcessor) updateData(data []v5.Credential) {
+	if db.destination == nil {
+		fmt.Printf("NoAct set, would have written:\n")
+	}
 	for _, credential := range data {
-		result := db.destination.Save(credential)
-		if result.Error != nil {
-			panic(result.Error)
+		if db.destination != nil {
+			result := db.destination.Save(credential)
+			if result.Error != nil {
+				panic(result.Error)
+			}
+		} else {
+			fmt.Printf("%s\n", credential.RoleId)
 		}
 	}
 }
