@@ -117,7 +117,7 @@ func (db *dbProcessor) readData() (result []v5.Credential, err error) {
 				user.encrypted_hash = values[2]
 			}
 
-			if !strings.HasPrefix(user.login, "host/i-") && !strings.HasPrefix(user.login, "host/azure-linux-agent-v2") {
+			if !strings.HasPrefix(user.login, "host/i-") && !strings.HasPrefix(user.login, "host/azure-linux-agent-v2") && user.login != "admin" {
 				decrypted_api_key, err := AES256GCMDecrypt(db.sourceDataKey, user.api_key[3:], user.login)
 				if err != nil {
 					panic(err)
