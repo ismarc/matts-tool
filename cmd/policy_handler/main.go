@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/ismarc/policy-handler/internal/app"
+	"github.com/ismarc/matts-tool/internal/app"
 	"github.com/urfave/cli/v2"
 )
 
@@ -29,6 +29,33 @@ func main() {
 			Name:  "strip-annotations",
 			Value: false,
 			Usage: "Whether to strip any annotations from the resulting policy",
+		},
+	}
+
+	dbFlags := []cli.Flag{
+		&cli.StringFlag{
+			Name:    "source",
+			Aliases: []string{"s"},
+			Value:   "",
+			Usage:   "Source filename containing appropriate pg_dump data to load",
+		},
+		&cli.StringFlag{
+			Name:    "destination-dsn",
+			Aliases: []string{"d"},
+			Value:   "",
+			Usage:   "DSN for connecting to the destination postgres database",
+		},
+		&cli.StringFlag{
+			Name:    "account",
+			Aliases: []string{"a"},
+			Value:   "conjur",
+			Usage:   "Conjur account to use for the destination values",
+		},
+		&cli.BoolFlag{
+			Name:    "no-act",
+			Aliases: []string{"n"},
+			Value:   false,
+			Usage:   "Only process the data and display what would be written to the database",
 		},
 	}
 
@@ -102,6 +129,32 @@ func main() {
 			Flags: policyFlags,
 			Action: func(c *cli.Context) error {
 				app.RunPolicy(inputPolicyFile, c.Bool("strip-annotations"))
+				return nil
+			},
+		},
+		{
+			Name: "db",
+			Usage: `Perform db related operations.
+			Decrypt values from pg_dump file and re-encrypt and add to running instance.
+			IN_CONJUR_DATA_KEY -- key to use for decryption of values in file
+			OUT_CONJUR_DATA_KEY -- key to use to encrypt values for insertion.
+
+			Generate the input data file:
+			pg_dump --data-only --schema="authn" --table="authn.users" > ~/data.sql
+			`,
+			Flags: dbFlags,
+			Action: func(c *cli.Context) error {
+				sourceDataKey := os.Getenv("IN_CONJUR_DATA_KEY")
+				destinationDataKey := os.Getenv("OUT_CONJUR_DATA_KEY")
+				config := app.DBConfig{
+					SourceFilename:     c.String("source"),
+					SourceDataKey:      sourceDataKey,
+					DestinationDSN:     c.String("destination-dsn"),
+					DestinationDataKey: destinationDataKey,
+					DestinationAccount: c.String("account"),
+					NoAct:              c.Bool("no-act"),
+				}
+				app.RunDB(config)
 				return nil
 			},
 		},
