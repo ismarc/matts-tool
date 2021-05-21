@@ -76,7 +76,7 @@ func processIncludes(node *yaml.Node, loader policyLoader, stripAnnotations bool
 	if node.Anchor != "" {
 		// Duplicate ids (because they can be nested) can have duplicate anchors
 		// Work around this by incrementing each time it's seen
-		anchor := node.Anchor
+		anchor := fmt.Sprintf("%s_%d_%s", incomingID, 0, node.Anchor)
 		for i := 0; seenAnchors[anchor]; i++ {
 			anchor = fmt.Sprintf("%s_%d_%s", incomingID, i, node.Anchor)
 		}
@@ -86,14 +86,13 @@ func processIncludes(node *yaml.Node, loader policyLoader, stripAnnotations bool
 	// An alias has to follow an anchor, and refers to the most recent.  The related
 	// anchor to the alias will be <id>_<highest counter>_<anchor>
 	if node.Kind == yaml.AliasNode {
-		anchor := node.Value
-		maxIndex := 0
-		for i := maxIndex; seenAnchors[anchor]; i++ {
-			anchor = fmt.Sprintf("%s_%d_%s", incomingID, i, node.Value)
-			maxIndex = i - 1
-		}
-		if maxIndex > 0 || seenAnchors[anchor] {
-			node.Value = anchor
+		for i := 0; true; i++ {
+			anchor := fmt.Sprintf("%s_%d_%s", incomingID, i, node.Value)
+			if !seenAnchors[anchor] {
+				anchor := fmt.Sprintf("%s_%d_%s", incomingID, i-1, node.Value)
+				node.Value = anchor
+				break
+			}
 		}
 	}
 
