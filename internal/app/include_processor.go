@@ -64,7 +64,7 @@ func excludedTag(value string, stripAnnotations bool) bool {
 
 func processIncludes(node *yaml.Node, loader policyLoader, stripAnnotations bool, incomingID string) (*yaml.Node, error) {
 	// Get the id for the currently being processed tree
-	if node.Kind == yaml.MappingNode {
+	if node.Kind == yaml.MappingNode && node.Tag == "!policy" {
 		for i := range node.Content {
 			if node.Content[i].Value == "id" {
 				r1 := regexp.MustCompile(`\W`)
