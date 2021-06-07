@@ -123,6 +123,14 @@ func syncResources(resources []string, source *conjurapi.Client, destination *co
 }
 
 func addSecret(destination *conjurapi.Client, variable string, value string) error {
-	fmt.Printf("Writing variable: %s\n", variable)
-	return destination.AddSecret(variable, value)
+	// Ignore errors, because it could indicate a missing value which should be set
+	destinationSecret, _ := destination.RetrieveSecret(variable)
+
+	if string(destinationSecret) == value {
+		fmt.Printf("Skipping variable: %s\n", variable)
+		return nil
+	} else {
+		fmt.Printf("Writing variable: %s\n", variable)
+		return destination.AddSecret(variable, value)
+	}
 }
