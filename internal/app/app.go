@@ -33,6 +33,7 @@ type APIConfig struct {
 	ContinueOnError     bool
 	ResourceBatchSize   int
 	VariableBatchSize   int
+	SkipSameValue       bool
 }
 
 type policyLoader struct {
@@ -110,7 +111,7 @@ func RunAPI(config APIConfig) {
 	}
 
 	if !config.NoAct {
-		errors := syncResources(resources, source, destination, config.VariableBatchSize, config.ContinueOnError)
+		errors := syncResources(resources, source, destination, config.VariableBatchSize, config.ContinueOnError, config.SkipSameValue)
 		if len(errors) != 0 {
 			fmt.Printf("Errors received:\n")
 			for k, v := range errors {

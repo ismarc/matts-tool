@@ -120,6 +120,11 @@ func main() {
 			Value: 10,
 			Usage: "Number of variable values to fetch in a single call to conjur",
 		},
+		&cli.BoolFlag{
+			Name:  "skip-same-value",
+			Value: true,
+			Usage: "Skip writing variables that have the same value in both systems",
+		},
 	}
 
 	commands := []*cli.Command{
@@ -174,6 +179,7 @@ func main() {
 					ContinueOnError:     continueOnError,
 					ResourceBatchSize:   c.Int("resource-batch-size"),
 					VariableBatchSize:   c.Int("variable-batch-size"),
+					SkipSameValue:       c.Bool("skip-same-value"),
 				}
 				app.RunAPI(config)
 				return nil
