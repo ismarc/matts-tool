@@ -64,7 +64,7 @@ func loadResources(conjur *conjurapi.Client, batchSize int) (result []string, er
 	return
 }
 
-func syncResources(resources []string, source *conjurapi.Client, destination *conjurapi.Client, batchSize int, continueOnError bool) (errors map[string][]string) {
+func syncResources(resources []string, source *conjurapi.Client, destination *conjurapi.Client, batchSize int, continueOnError bool, skipSameValue bool) (errors map[string][]string) {
 	errors = make(map[string][]string)
 	account := source.GetConfig().Account
 	variablePrefix := fmt.Sprintf("%s:variable:", account)
@@ -105,7 +105,7 @@ func syncResources(resources []string, source *conjurapi.Client, destination *co
 		}
 
 		for variable, value := range data {
-			err := addSecret(destination, variable, string(value))
+			err := addSecret(destination, variable, string(value), skipSameValue)
 			if err != nil {
 				if errors[err.Error()] != nil {
 					errors[err.Error()] = append(errors[err.Error()], variable)
@@ -122,7 +122,18 @@ func syncResources(resources []string, source *conjurapi.Client, destination *co
 	return
 }
 
-func addSecret(destination *conjurapi.Client, variable string, value string) error {
+func addSecret(destination *conjurapi.Client, variable string, value string, skipSameValue bool) error {
+	// Skip writing values that are the same in both systems
+	if skipSameValue {
+		// Ignore errors, because it could indicate a missing value which should be set
+		destinationSecret, _ := destination.RetrieveSecret(variable)
+
+		if string(destinationSecret) == value {
+			fmt.Printf("Variable matches, not updating: %s\n", variable)
+			return nil
+		}
+	}
+
 	fmt.Printf("Writing variable: %s\n", variable)
 	return destination.AddSecret(variable, value)
 }
