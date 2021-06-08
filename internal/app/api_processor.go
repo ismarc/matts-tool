@@ -129,7 +129,7 @@ func addSecret(destination *conjurapi.Client, variable string, value string, ski
 		destinationSecret, _ := destination.RetrieveSecret(variable)
 
 		if string(destinationSecret) == value {
-			fmt.Printf("Skipping variable: %s\n", variable)
+			fmt.Printf("Variable matches, not updating: %s\n", variable)
 			return nil
 		}
 	}
