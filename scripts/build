@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
+
 set -xeuo pipefail
+
+GO_BUILD_IMAGE="${GO_BUILD_IMAGE:-golang:bullseye}"
 
 echo "Building Matts conjur policy v4 --> v5 conversion tool"
 
@@ -17,7 +20,7 @@ if [[ "${1:-}" == "--docker" ]]; then
     -e GOOS \
     -v ${repo_root}:/src \
     -w /src \
-    golang \
+    "${GO_BUILD_IMAGE}" \
     go build -o output/mt cmd/policy_handler/main.go
 else
   if ! command -v go; then
