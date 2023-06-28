@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 
-set -xeuo pipefail
+set -euo pipefail
 
 GO_BUILD_IMAGE="${GO_BUILD_IMAGE:-golang:bullseye}"
 
-echo "Building Matts conjur policy v4 --> v5 conversion tool"
+echo "Building Matt's Conjur Tool"
 
 # Use cd;pwd to ensure the path is absolute so can be
 # used in a docker mount

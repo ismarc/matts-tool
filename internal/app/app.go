@@ -21,6 +21,13 @@ type DBConfig struct {
 	NoAct              bool
 }
 
+type RotateConfig struct {
+	DSN                string
+	SourceDataKey      string
+	DestinationDataKey string
+	NoAct              bool
+}
+
 // APIConfig provides an interface for API related configuration options
 type APIConfig struct {
 	SourceConjurRC      string
@@ -90,6 +97,13 @@ func RunDB(config DBConfig) {
 	for _, v := range data {
 		fmt.Printf("%s\n", v.RoleId)
 	}
+}
+
+func RunRotate(config RotateConfig) {
+	processor := rotateProcessor{}
+	processor.init(config)
+	processor.process()
+
 }
 
 // RunAPI is the main entrypoint for the db subcommand
