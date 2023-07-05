@@ -1,0 +1,3 @@
+[submodule "conjur-quickstart"]
+	path = conjur-quickstart
+	url = https://github.com/cyberark/conjur-quickstart

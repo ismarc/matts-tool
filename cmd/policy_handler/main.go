@@ -59,6 +59,21 @@ func main() {
 		},
 	}
 
+	rotateFlags := []cli.Flag{
+		&cli.StringFlag{
+			Name:    "dsn",
+			Aliases: []string{"s"},
+			Value:   "",
+			Usage:   "Postgres Connecion String",
+		},
+		&cli.BoolFlag{
+			Name:    "no-act",
+			Aliases: []string{"n"},
+			Value:   false,
+			Usage:   "Only process the data and display what would be written to the database",
+		},
+	}
+
 	apiFlags := []cli.Flag{
 		&cli.StringFlag{
 			Name:        "source-conjurrc",
@@ -160,6 +175,29 @@ func main() {
 					NoAct:              c.Bool("no-act"),
 				}
 				app.RunDB(config)
+				return nil
+			},
+		},
+		{
+			Name: "rotate-datakey",
+			Usage: `Rotate datakey for conjur v5 database
+			Decrypt and re-encrypt values in a live v5 database
+			IN_CONJUR_DATA_KEY -- key to use for decryption of values in db
+			OUT_CONJUR_DATA_KEY -- key to use to re-encrypt values before insertion back into db
+
+			DSN is the postgres connection string eg: postgresql://user:password@host:5432/dbname
+			`,
+			Flags: rotateFlags,
+			Action: func(c *cli.Context) error {
+				sourceDataKey := os.Getenv("IN_CONJUR_DATA_KEY")
+				destinationDataKey := os.Getenv("OUT_CONJUR_DATA_KEY")
+				config := app.RotateConfig{
+					DSN:                c.String("dsn"),
+					SourceDataKey:      sourceDataKey,
+					DestinationDataKey: destinationDataKey,
+					NoAct:              c.Bool("no-act"),
+				}
+				app.RunRotate(config)
 				return nil
 			},
 		},
