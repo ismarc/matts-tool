@@ -11,14 +11,14 @@ type Credential struct {
 }
 
 type Secret struct {
-	Version    int
+	Version    int `gorm:"primaryKey;not null"`
 	Value      []byte
 	ResourceId string `gorm:"primaryKey;not null"`
 	ExpiresAt  time.Time
 }
 
 type SlosiloKeystore struct {
-	Id          string `gorm:"not null"`
+	Id          string `gorm:"primaryKey;not null"`
 	Key         []byte `gorm:"not null;type:bytea"`
 	Fingerprint string `gorm:"not null"`
 }
