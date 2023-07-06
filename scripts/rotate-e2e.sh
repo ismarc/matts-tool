@@ -49,6 +49,7 @@ deploy_conjur(){
   echo "✅ load test policy"
   docker compose exec client conjur list
   echo "✅ list objects"
+  docker compose exec client conjur variable set -i test/test -v firstvalue
   docker compose exec client conjur variable set -i test/test -v t3st
   echo "✅ set test value test/test = t3st"
   docker compose exec client conjur user  change-password  -p "${admin_password}"
